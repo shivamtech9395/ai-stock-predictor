@@ -1,0 +1,10 @@
+# Never push these to GitHub
+venv/
+.venv/
+.venv-1/
+*.db
+backend/models/saved/
+__pycache__/
+*.pyc
+.env
+*.pkl
