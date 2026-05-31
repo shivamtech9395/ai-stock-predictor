@@ -1,74 +1,49 @@
 # ============================================
-# PRICE COLLECTOR
-# Downloads stock data and saves to database
+# PRICE COLLECTOR V4 - AUTO .NS ADD
 # ============================================
 
 import yfinance as yf
-import pandas as pd
-import sys
-import os
-import warnings
+import sys, os, warnings
 warnings.filterwarnings('ignore')
 
-# Apni database connection import karo
-# sys.path = Python ko batao ki files kahan dhundhe
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from backend.database.connection import get_connection, init_database
-
-# ── STOCKS LIST ───────────────────────────────
-# Yahan se start karenge — baad mein 500 karenge
-STOCKS = [
-    ("RELIANCE.NS",   "Reliance Industries",  "Energy"),
-    ("TCS.NS",        "Tata Consultancy",      "IT"),
-    ("HDFCBANK.NS",   "HDFC Bank",             "Banking"),
-    ("INFY.NS",       "Infosys",               "IT"),
-    ("ICICIBANK.NS",  "ICICI Bank",            "Banking"),
-    ("HINDUNILVR.NS", "Hindustan Unilever",    "FMCG"),
-    ("SBIN.NS",       "State Bank of India",   "Banking"),
-    ("BHARTIARTL.NS", "Bharti Airtel",         "Telecom"),
-    ("KOTAKBANK.NS",  "Kotak Mahindra Bank",   "Banking"),  # Try new symbol
-    ("LT.NS",         "Larsen & Toubro",       "Infrastructure"),
-]
+from backend.data.stocks_list import NIFTY_500_STOCKS
 
 def save_stocks_master():
-    """
-    Stocks ki master list database mein save karo.
-    Ye sirf ek baar chalega — already hai toh skip karega.
-    """
     conn = get_connection()
     cursor = conn.cursor()
-
-    for symbol, company, sector in STOCKS:
-        # INSERT OR IGNORE = agar already hai toh skip karo
+    for symbol, company, sector in NIFTY_500_STOCKS:
         cursor.execute("""
             INSERT OR IGNORE INTO stocks (symbol, company, sector)
             VALUES (?, ?, ?)
-        """, (symbol.replace(".NS", ""), company, sector))
-
+        """, (symbol, company, sector))
     conn.commit()
     conn.close()
-    print(f"   Stocks master list saved — {len(STOCKS)} stocks")
+    print(f"   Stocks master list saved — {len(NIFTY_500_STOCKS)} stocks")
 
 def download_and_save(symbol, company):
     """
-    Ek stock ka data download karo aur database mein save karo.
+    symbol = clean symbol WITHOUT .NS (e.g. TATASTEEL)
+    We add .NS automatically for yfinance
     """
     try:
-        # Download 2 saal ka data
-        df = yf.download(symbol, period="2y", interval="1d", progress=False)
-        df.columns = df.columns.get_level_values(0)
+        # Add .NS for yfinance
+        yf_symbol = symbol + ".NS"
 
-        if len(df) < 50:
-            print(f"      Not enough data for {symbol}")
+        df = yf.download(yf_symbol, period="2y", interval="1d", progress=False)
+
+        if df is None or df.empty or len(df) < 10:
             return 0
+
+        # Multi-level columns fix
+        if hasattr(df.columns, 'levels'):
+            df.columns = df.columns.get_level_values(0)
 
         conn = get_connection()
         cursor = conn.cursor()
+        saved = 0
 
-        saved_count = 0
-        sym_clean = symbol.replace(".NS", "")
-
-        # Har row database mein save karo
         for date, row in df.iterrows():
             try:
                 cursor.execute("""
@@ -76,7 +51,7 @@ def download_and_save(symbol, company):
                     (symbol, date, open, high, low, close, volume)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    sym_clean,
+                    symbol,
                     str(date.date()),
                     round(float(row['Open']), 2),
                     round(float(row['High']), 2),
@@ -84,53 +59,56 @@ def download_and_save(symbol, company):
                     round(float(row['Close']), 2),
                     int(row['Volume']),
                 ))
-                saved_count += 1
+                saved += 1
             except:
                 continue
 
         conn.commit()
         conn.close()
-        return saved_count
+        return saved
 
     except Exception as e:
-        print(f"      Error downloading {symbol}: {e}")
         return 0
 
 def collect_all_stocks():
-    """
-    Sab stocks ka data collect karo — ye main function hai.
-    """
-    print("=" * 55)
-    print("   PRICE COLLECTOR - Starting...")
-    print("=" * 55)
+    print("=" * 60)
+    print("   PRICE COLLECTOR V4 - Starting...")
+    print(f"   Total stocks: {len(NIFTY_500_STOCKS)}")
+    print("=" * 60)
 
-    # Pehle database aur master list setup karo
     init_database()
     save_stocks_master()
 
     total_saved = 0
+    success = 0
+    failed = []
 
-    for i, (symbol, company, sector) in enumerate(STOCKS):
-        print(f"\n   [{i+1}/{len(STOCKS)}] Downloading {company}...")
+    for i, (symbol, company, sector) in enumerate(NIFTY_500_STOCKS):
+        print(f"   [{i+1}/{len(NIFTY_500_STOCKS)}] {company}...", end=" ", flush=True)
         count = download_and_save(symbol, company)
-        total_saved += count
-        print(f"          Saved {count} days of data")
+        if count > 0:
+            total_saved += count
+            success += 1
+            print(f"✅ {count} days")
+        else:
+            failed.append(symbol)
+            print(f"❌ skipped")
 
-    print("\n" + "=" * 55)
-    print(f"   COLLECTION COMPLETE!")
-    print(f"   Total records saved: {total_saved}")
-    print("=" * 55)
+    print("\n" + "=" * 60)
+    print(f"   COMPLETE!")
+    print(f"   ✅ Successful : {success} stocks")
+    print(f"   ❌ Failed     : {len(failed)} stocks")
+    print(f"   📊 Total records: {total_saved}")
+    if failed:
+        print(f"   Failed list: {', '.join(failed[:10])}")
+    print("=" * 60)
+    return total_saved
 
 def get_latest_prices():
-    """
-    Database se latest prices dikhao — check karne ke liye.
-    """
     conn = get_connection()
     cursor = conn.cursor()
-
     cursor.execute("""
-        SELECT p.symbol, s.company, s.sector,
-               p.close, p.volume, p.date
+        SELECT p.symbol, s.company, s.sector, p.close, p.date
         FROM price_data p
         JOIN stocks s ON p.symbol = s.symbol
         WHERE p.date = (
@@ -139,27 +117,15 @@ def get_latest_prices():
         )
         ORDER BY p.close DESC
     """)
-
     rows = cursor.fetchall()
     conn.close()
     return rows
 
-# ── RUN KARO ──────────────────────────────────
 if __name__ == "__main__":
-    # Step 1: Sab data download aur save karo
     collect_all_stocks()
-
-    # Step 2: Verify — database mein kya hai check karo
-    print("\n   LATEST PRICES IN DATABASE:")
+    print("\n   STOCKS IN DATABASE:")
     print("-" * 55)
-    print(f"   {'SYMBOL':<12} {'COMPANY':<22} {'CLOSE':>8} {'DATE'}")
-    print("-" * 55)
-
     prices = get_latest_prices()
-    for row in prices:
-        print(f"   {row['symbol']:<12} {row['company']:<22} "
-              f"Rs.{row['close']:>7.2f} {row['date']}")
-
-    print("-" * 55)
-    print(f"   Total stocks in DB: {len(prices)}")
-    print()
+    print(f"   Total: {len(prices)} stocks")
+    for row in prices[:15]:
+        print(f"   {row['symbol']:<14} {row['company']:<28} ₹{row['close']}")
