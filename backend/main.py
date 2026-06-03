@@ -256,3 +256,63 @@ def get_upcoming_earnings():
         {"symbol": "RELIANCE", "company": "Reliance Industries", "date": "2026-07-25", "quarter": "Q1 FY27"},
         {"symbol": "ICICIBANK", "company": "ICICI Bank", "date": "2026-07-26", "quarter": "Q1 FY27"},
     ]}
+@app.get("/api/market/close-report")
+def get_market_close_report():
+    try:
+        import json
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS market_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                report_date TEXT UNIQUE,
+                report_json TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+            )
+        """)
+        cursor.execute("""
+            SELECT report_json, report_date, created_at
+            FROM market_reports
+            ORDER BY report_date DESC
+            LIMIT 1
+        """)
+        row = cursor.fetchone()
+        conn.close()
+        if not row:
+            return {"status": "no_data", "message": "Run market_close_report.py first"}
+        return {
+            "status": "ok",
+            "report_date": row['report_date'],
+            "created_at": row['created_at'],
+            "data": json.loads(row['report_json'])
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+from fastapi.responses import StreamingResponse
+from backend.pdf_generator import generate_stock_pdf, generate_news_pdf
+
+@app.get("/api/pdf/stock/{symbol}")
+def download_stock_pdf(symbol: str):
+    try:
+        buffer = generate_stock_pdf(symbol.upper())
+        if not buffer:
+            return {"error": "Stock not found"}
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={symbol}_report.pdf"}
+        )
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/pdf/news")
+def download_news_pdf():
+    try:
+        buffer = generate_news_pdf()
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": "attachment; filename=daily_news_report.pdf"}
+        )
+    except Exception as e:
+        return {"error": str(e)}    

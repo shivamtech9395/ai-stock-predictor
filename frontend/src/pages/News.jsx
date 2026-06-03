@@ -112,6 +112,14 @@ export default function News() {
             <div className="text-xl font-bold text-red-400">{negCount}</div>
           </div>
         </div>
+        <a href="http://localhost:8000/api/pdf/news"
+   target="_blank"
+   className="flex items-center justify-center gap-2 px-4 py-2 
+              bg-blue-600/20 hover:bg-blue-600/40 
+              border border-blue-600/30 rounded-xl 
+              text-sm text-blue-400 transition-all mb-4">
+  📥 Download Daily News PDF
+</a>
 
         {/* Stock selector */}
         <div className="mb-3">

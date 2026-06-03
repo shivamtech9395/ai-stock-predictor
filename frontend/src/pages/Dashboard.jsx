@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { TrendingUp, TrendingDown, Minus, RefreshCw,
+import { TrendingUp, TrendingDown, Minus, RefreshCw, Download,
          Activity, Newspaper, Target, AlertCircle,
          ChevronDown, ChevronUp, Clock, BarChart2,
          Zap, Calendar } from "lucide-react"
@@ -66,36 +66,36 @@ function AIReason({ stock, livePrice }) {
     reasons.push({ icon: "🤖", title: "AI Model Signal", text: `AI model shows mixed signals with ${up}% up probability. Market is undecided — better to wait.` })
 
   if (rsi < 30)
-    reasons.push({ icon: "📊", title: "RSI Oversold", text: `RSI is at ${rsi.toFixed(1)} — below 30 means OVERSOLD. Stock has fallen too much too fast. A price bounce/recovery is likely soon. This is often a good buying opportunity.` })
+    reasons.push({ icon: "📊", title: "RSI Oversold", text: `RSI is at ${rsi.toFixed(1)} — below 30 means OVERSOLD. Stock has fallen too much too fast. A price bounce/recovery is likely soon.` })
   else if (rsi > 70)
-    reasons.push({ icon: "📊", title: "RSI Overbought", text: `RSI is at ${rsi.toFixed(1)} — above 70 means OVERBOUGHT. Too many buyers pushed price up quickly. A correction is possible. Be careful buying now.` })
+    reasons.push({ icon: "📊", title: "RSI Overbought", text: `RSI is at ${rsi.toFixed(1)} — above 70 means OVERBOUGHT. Too many buyers pushed price up. A correction is possible.` })
   else
-    reasons.push({ icon: "📊", title: "RSI Normal", text: `RSI is at ${rsi.toFixed(1)} — in normal range (30-70). No extreme buying or selling pressure. Price can move either way.` })
+    reasons.push({ icon: "📊", title: "RSI Normal", text: `RSI is at ${rsi.toFixed(1)} — in normal range (30-70). No extreme buying or selling pressure.` })
 
   if (change > 0)
-    reasons.push({ icon: "📈", title: "Today's Movement", text: `Stock is UP ₹${change.toFixed(2)} today in live market. Positive momentum is supporting the AI prediction.` })
+    reasons.push({ icon: "📈", title: "Today's Movement", text: `Stock is UP ₹${change.toFixed(2)} today in live market. Positive momentum supporting the AI prediction.` })
   else if (change < 0)
     reasons.push({ icon: "📉", title: "Today's Movement", text: `Stock is DOWN ₹${Math.abs(change).toFixed(2)} today. Selling pressure visible in live market.` })
 
   if (sent === "positive")
-    reasons.push({ icon: "📰", title: "News Sentiment", text: `Recent news about this company is POSITIVE. Good developments reported — company announcements, results, or business news is favorable. Positive news usually attracts buyers.` })
+    reasons.push({ icon: "📰", title: "News Sentiment", text: `Recent news about this company is POSITIVE. Good developments reported — positive news usually attracts buyers.` })
   else if (sent === "negative")
-    reasons.push({ icon: "📰", title: "News Sentiment", text: `Recent news is NEGATIVE. Bad news in media is creating selling pressure. Investors are cautious about this stock right now.` })
+    reasons.push({ icon: "📰", title: "News Sentiment", text: `Recent news is NEGATIVE. Bad news in media is creating selling pressure. Investors are cautious.` })
   else
-    reasons.push({ icon: "📰", title: "News Sentiment", text: `News sentiment is NEUTRAL. No major positive or negative news recently. Stock will likely follow overall market direction.` })
+    reasons.push({ icon: "📰", title: "News Sentiment", text: `News sentiment is NEUTRAL. No major positive or negative news recently.` })
 
   const sig = (stock.signal || "").toUpperCase()
   if (sig.includes("BUY"))
-    reasons.push({ icon: "✅", title: "Final Conclusion", text: `BULLISH — Multiple indicators are aligned positively. AI model, technical analysis, and news all suggest upward potential. Consider this for trading but ALWAYS use a stop-loss.` })
+    reasons.push({ icon: "✅", title: "Final Conclusion", text: `BULLISH — Multiple indicators aligned positively. Consider this for trading but ALWAYS use a stop-loss.` })
   else if (sig.includes("SELL"))
-    reasons.push({ icon: "❌", title: "Final Conclusion", text: `BEARISH — Multiple indicators show weakness. Avoid buying today. If you already hold this stock, consider booking profits or setting a tight stop-loss.` })
+    reasons.push({ icon: "❌", title: "Final Conclusion", text: `BEARISH — Multiple indicators show weakness. Avoid buying today. Consider booking profits if holding.` })
   else
-    reasons.push({ icon: "⏳", title: "Final Conclusion", text: `WAIT & WATCH — Signals are mixed. No clear direction today. Better opportunities may come tomorrow. Patience is key in trading.` })
+    reasons.push({ icon: "⏳", title: "Final Conclusion", text: `WAIT & WATCH — Mixed signals. No clear direction today. Better opportunities may come tomorrow.` })
 
   return (
     <div className="space-y-2 mt-3">
       <p className="text-xs text-blue-400 font-semibold uppercase tracking-wider flex items-center gap-1">
-        <Zap size={11}/> Why AI says this — Full Analysis
+        <Zap size={11}/> Why AI says this
       </p>
       {reasons.map((r, i) => (
         <div key={i} className="flex gap-2 bg-gray-800/60 rounded-lg p-2.5 border border-gray-700/30">
@@ -122,13 +122,11 @@ function StockNews({ symbol }) {
   return (
     <div className="mt-3">
       <p className="text-xs text-blue-400 font-semibold uppercase tracking-wider flex items-center gap-1 mb-2">
-        <Newspaper size={11}/> Latest News & Sentiment
+        <Newspaper size={11}/> Latest News
       </p>
-      {loading ? (
-        <p className="text-gray-500 text-xs">Loading news...</p>
-      ) : news.length === 0 ? (
-        <p className="text-gray-500 text-xs">No news found for this stock</p>
-      ) : (
+      {loading ? <p className="text-gray-500 text-xs">Loading...</p>
+      : news.length === 0 ? <p className="text-gray-500 text-xs">No news found</p>
+      : (
         <div className="space-y-2">
           {news.slice(0, 5).map((n, i) => (
             <div key={i} className="flex gap-2 bg-gray-800/40 rounded-lg p-2 border border-gray-700/20">
@@ -150,10 +148,14 @@ function StockNews({ symbol }) {
               </div>
             </div>
           ))}
-          <a href={`/news`}
-            className="block text-center text-xs text-blue-400 hover:text-blue-300 
-                       py-2 border border-blue-800/30 rounded-lg hover:bg-blue-900/20 transition-all">
-            View all news & history →
+          <a href="/news" className="block text-center text-xs text-blue-400 hover:text-blue-300 py-2 border border-blue-800/30 rounded-lg hover:bg-blue-900/20 transition-all">
+            View all news →
+            </a>
+            <a href={`http://localhost:8000/api/pdf/stock/${stock.symbol}`}
+               target="_blank"
+               onClick={e => e.stopPropagation()}
+               className="mt-2 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-600/30 rounded-lg text-xs text-blue-400 transition-all w-full">
+              <Download size={12}/> Download {stock.symbol} PDF Report
           </a>
         </div>
       )}
@@ -187,10 +189,134 @@ function EarningsPanel() {
                 <p className="text-gray-500 text-xs">{e.date}</p>
               </div>
             </div>
-            <p className="text-gray-500 text-xs mt-1">📅 Watch for big movement on result day</p>
+            <p className="text-gray-500 text-xs mt-1">📅 Watch for big movement</p>
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+function MarketCloseReport() {
+  const [report, setReport]   = useState(null)
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    axios.get(`${API}/api/market/close-report`)
+      .then(r => { if (r.data.status === "ok") setReport(r.data) })
+      .catch(() => {})
+  }, [])
+
+  if (!report) return null
+
+  const data     = report.data
+  const bullish  = data.bullish  || []
+  const bearish  = data.bearish  || []
+  const sectors  = data.sectors  || []
+  const analysis = data.analysis || []
+  const indices  = data.indices  || {}
+
+  return (
+    <div className="bg-gray-900/60 border border-purple-700/30 rounded-xl mb-4 overflow-hidden">
+      <div className="flex items-center justify-between p-4 cursor-pointer"
+           onClick={() => setExpanded(!expanded)}>
+        <div className="flex items-center gap-2">
+          <BarChart2 size={16} className="text-purple-400"/>
+          <div>
+            <h3 className="text-sm font-semibold text-purple-400">
+              📊 Market Close Report — {report.report_date}
+            </h3>
+            <p className="text-xs text-gray-500">AI analysis of today's market</p>
+          </div>
+        </div>
+        {expanded ? <ChevronUp size={16} className="text-gray-500"/> : <ChevronDown size={16} className="text-gray-500"/>}
+      </div>
+
+      {expanded && (
+        <div className="border-t border-gray-800 p-4">
+
+          {Object.keys(indices).length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 font-semibold uppercase mb-2">Index Performance</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {Object.entries(indices).map(([name, d]) => (
+                  <div key={name} className="bg-gray-800/50 rounded-lg p-2">
+                    <p className="text-xs text-gray-500">{name}</p>
+                    <p className="text-sm font-bold font-mono">{d.close?.toLocaleString('en-IN')}</p>
+                    <p className={`text-xs ${d.change >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      {d.change >= 0 ? "▲" : "▼"} {Math.abs(d.change_pct).toFixed(2)}%
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {analysis.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 font-semibold uppercase mb-2">AI Analysis</p>
+              <div className="space-y-1">
+                {analysis.map((point, i) => (
+                  <p key={i} className="text-xs text-gray-300 flex gap-2">
+                    <span className="text-purple-400 flex-shrink-0">•</span>{point}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div>
+              <p className="text-xs text-emerald-400 font-semibold uppercase mb-2">🚀 Top Bullish</p>
+              <div className="space-y-1">
+                {bullish.slice(0, 6).map((s, i) => (
+                  <div key={i} className="flex justify-between items-center bg-gray-800/40 rounded px-2 py-1">
+                    <div>
+                      <span className="text-xs font-bold text-white">{s.symbol}</span>
+                      <span className="text-gray-500 text-xs ml-1">{s.sector}</span>
+                    </div>
+                    <span className="text-emerald-400 text-xs font-bold">UP {s.prob_up?.toFixed(0)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs text-red-400 font-semibold uppercase mb-2">🔴 Avoid Today</p>
+              <div className="space-y-1">
+                {bearish.slice(0, 6).map((s, i) => (
+                  <div key={i} className="flex justify-between items-center bg-gray-800/40 rounded px-2 py-1">
+                    <div>
+                      <span className="text-xs font-bold text-white">{s.symbol}</span>
+                      <span className="text-gray-500 text-xs ml-1">{s.sector}</span>
+                    </div>
+                    <span className="text-red-400 text-xs font-bold">UP {s.prob_up?.toFixed(0)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500 font-semibold uppercase mb-2">Sector Summary</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {sectors.slice(0, 9).map((s, i) => (
+                <div key={i} className="bg-gray-800/40 rounded-lg p-2">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-300 font-medium">{s.sector}</span>
+                    <span className="text-xs text-gray-500">{s.total}</span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className={`text-xs font-bold ${s.avg_up > 55 ? "text-emerald-400" : s.avg_up < 45 ? "text-red-400" : "text-yellow-400"}`}>
+                      {s.avg_up?.toFixed(1)}%
+                    </span>
+                    <span className="text-xs">{s.mood?.split(' ')[1]}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -206,7 +332,9 @@ export default function Dashboard() {
   const [filter, setFilter]           = useState("ALL")
   const [liveTime, setLiveTime]       = useState("")
 
-  const sectors = ["ALL","Banking","IT","Energy","Telecom","FMCG","Infrastructure"]
+  const sectors = ["ALL","Banking","IT","Energy","Telecom","FMCG","Infrastructure",
+                   "Auto","Pharma","Metals","Finance","Consumer","Chemicals",
+                   "Defense","Healthcare","Retail","Logistics","Aviation"]
 
   const fetchPredictions = async () => {
     setLoading(true)
@@ -255,11 +383,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-white">
-
-      {/* HEADER */}
       <div className="sticky top-0 z-50 bg-[#0d1221]/98 backdrop-blur border-b border-gray-800">
-
-        {/* Index bar */}
         <div className="border-b border-gray-800/50 px-3 py-1.5 flex items-center gap-4 overflow-x-auto">
           {indexList.map(idx => {
             const live = liveIndices[idx.key]
@@ -287,8 +411,6 @@ export default function Dashboard() {
             <LiveClock/>
           </div>
         </div>
-
-        {/* Main header */}
         <div className="px-3 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -301,21 +423,12 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/>
-            <span className="text-xs text-gray-500 hidden sm:block">Live</span>
-            {/* NEWS BUTTON */}
             <a href="/news"
-              className="flex items-center gap-1.5 px-3 py-1.5
-                         bg-gray-800 hover:bg-gray-700
-                         border border-gray-700 rounded-lg
-                         text-xs text-gray-300 transition-all">
-              <Newspaper size={12}/>
-              News
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs text-gray-300 transition-all">
+              <Newspaper size={12}/> News
             </a>
-            {/* REFRESH BUTTON */}
             <button onClick={() => { fetchPredictions(); fetchLivePrices() }}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20
-                         hover:bg-blue-600/40 border border-blue-600/30
-                         rounded-lg text-xs text-blue-400 transition-all">
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-600/30 rounded-lg text-xs text-blue-400 transition-all">
               <RefreshCw size={12} className={loading ? "animate-spin" : ""}/>
               Refresh
             </button>
@@ -325,7 +438,6 @@ export default function Dashboard() {
 
       <div className="max-w-5xl mx-auto px-3 py-4">
 
-        {/* STATS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           {[
             { label: "Stocks Analyzed", val: stocks.length, color: "text-white", icon: "📊" },
@@ -346,9 +458,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* MORNING REPORT */}
-        <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30
-                        border border-blue-700/30 rounded-xl p-4 mb-4">
+        <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700/30 rounded-xl p-4 mb-4">
           <div className="flex gap-2">
             <Target className="text-blue-400 flex-shrink-0 mt-0.5" size={16}/>
             <div>
@@ -356,36 +466,28 @@ export default function Dashboard() {
                 🌅 Today's AI Morning Report — {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </h2>
               <p className="text-gray-300 text-xs leading-relaxed">
-                AI analyzed <strong>{stocks.length} NSE stocks</strong> today using price patterns, technical indicators, and news sentiment.
-                {buyCount > 0 && <> Top bullish picks: <strong className="text-emerald-400">{stocks.filter(s=>(s.signal||"").includes("BUY")).slice(0,3).map(s=>s.symbol).join(", ")}</strong>.</>}
-                {sellCount > 0 && <> Avoid today: <strong className="text-red-400">{stocks.filter(s=>(s.signal||"").includes("SELL")).slice(0,2).map(s=>s.symbol).join(", ")}</strong>.</>}
-                {" "}Overall market mood: <strong className={
-                  summary?.market_mood === "BULLISH" ? "text-emerald-400" :
-                  summary?.market_mood === "BEARISH" ? "text-red-400" : "text-yellow-400"
-                }>{summary?.market_mood || "Analyzing..."}</strong>.
+                AI analyzed <strong>{stocks.length} NSE stocks</strong> today.
+                {buyCount > 0 && <> Top bullish: <strong className="text-emerald-400">{stocks.filter(s=>(s.signal||"").includes("BUY")).slice(0,3).map(s=>s.symbol).join(", ")}</strong>.</>}
+                {sellCount > 0 && <> Avoid: <strong className="text-red-400">{stocks.filter(s=>(s.signal||"").includes("SELL")).slice(0,2).map(s=>s.symbol).join(", ")}</strong>.</>}
+                {" "}Market mood: <strong className={summary?.market_mood === "BULLISH" ? "text-emerald-400" : summary?.market_mood === "BEARISH" ? "text-red-400" : "text-yellow-400"}>{summary?.market_mood || "Analyzing..."}</strong>.
               </p>
             </div>
           </div>
         </div>
 
-        {/* EARNINGS */}
         <EarningsPanel/>
+        <MarketCloseReport/>
 
-        {/* SECTOR FILTER */}
         <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
           {sectors.map(s => (
             <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1 rounded-full text-xs font-medium
-                         border flex-shrink-0 transition-all ${
-                filter === s
-                  ? "bg-blue-600 border-blue-600 text-white"
-                  : "bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500"
+              className={`px-3 py-1 rounded-full text-xs font-medium border flex-shrink-0 transition-all ${
+                filter === s ? "bg-blue-600 border-blue-600 text-white" : "bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500"
               }`}>{s}
             </button>
           ))}
         </div>
 
-        {/* STOCKS LIST */}
         {loading ? (
           <div className="text-center py-16 text-gray-500">
             <RefreshCw className="animate-spin mx-auto mb-3" size={28}/>
@@ -410,26 +512,24 @@ export default function Dashboard() {
                   className={`bg-gray-900/60 border rounded-xl overflow-hidden transition-all ${
                     isOpen ? "border-blue-600/50 shadow-lg shadow-blue-900/20" : "border-gray-800 hover:border-gray-700"
                   }`}>
-                  <div className="p-3 cursor-pointer"
-                    onClick={() => setSelected(isOpen ? null : stock)}>
+                  <div className="p-3 cursor-pointer" onClick={() => setSelected(isOpen ? null : stock)}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2 min-w-0">
                         <span className="text-gray-600 text-xs mt-1 w-4 flex-shrink-0">{idx+1}</span>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <a href={`/stock/${stock.symbol}`} onClick={e => e.stopPropagation()} className="font-bold text-sm hover:text-blue-400 transition-colors">{stock.symbol}</a>
+                            <a href={`/stock/${stock.symbol}`}
+                               onClick={e => e.stopPropagation()}
+                               className="font-bold text-sm hover:text-blue-400 transition-colors">
+                              {stock.symbol}
+                            </a>
                             <span className="text-gray-400 text-xs truncate">{stock.company}</span>
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                             <span className="text-gray-600 text-xs">{stock.sector}</span>
                             <span className="text-gray-700 text-xs">·</span>
                             <span className="text-gray-600 text-xs">₹{stock.price_range}</span>
-                            {live && (
-                              <>
-                                <span className="text-gray-700 text-xs">·</span>
-                                <PriceChange change={live.change} pct={live.change_pct}/>
-                              </>
-                            )}
+                            {live && (<><span className="text-gray-700 text-xs">·</span><PriceChange change={live.change} pct={live.change_pct}/></>)}
                           </div>
                         </div>
                       </div>
@@ -480,14 +580,11 @@ export default function Dashboard() {
                       <div className="grid grid-cols-3 gap-2 mb-3">
                         {[
                           { label: "AI UP Score", val: `${up.toFixed(1)}%`, color: up >= 55 ? "text-emerald-400" : "text-red-400" },
-                          { label: "RSI (14)", val: safe(stock.rsi, 50).toFixed(1),
-                            color: safe(stock.rsi,50) < 30 ? "text-emerald-400" : safe(stock.rsi,50) > 70 ? "text-red-400" : "text-yellow-400" },
-                          { label: "Model Accuracy", val: `${safe(stock.accuracy).toFixed(1)}%`, color: "text-blue-400" },
+                          { label: "RSI (14)", val: safe(stock.rsi, 50).toFixed(1), color: safe(stock.rsi,50) < 30 ? "text-emerald-400" : safe(stock.rsi,50) > 70 ? "text-red-400" : "text-yellow-400" },
+                          { label: "Accuracy", val: `${safe(stock.accuracy).toFixed(1)}%`, color: "text-blue-400" },
                           { label: "Sector", val: stock.sector, color: "text-gray-300" },
                           { label: "Price Range", val: `₹${stock.price_range}`, color: "text-gray-300" },
-                          { label: "Sentiment", val: stock.sent_label || "neutral",
-                            color: stock.sent_label === "positive" ? "text-emerald-400" :
-                                   stock.sent_label === "negative" ? "text-red-400" : "text-gray-400" },
+                          { label: "Sentiment", val: stock.sent_label || "neutral", color: stock.sent_label === "positive" ? "text-emerald-400" : stock.sent_label === "negative" ? "text-red-400" : "text-gray-400" },
                         ].map(item => (
                           <div key={item.label} className="bg-gray-800/50 rounded-lg p-2">
                             <div className="text-gray-500 text-xs">{item.label}</div>
@@ -505,11 +602,10 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* DISCLAIMER */}
         <div className="mt-4 flex gap-2 bg-yellow-900/20 border border-yellow-700/30 rounded-xl p-3">
           <AlertCircle size={14} className="text-yellow-500 flex-shrink-0 mt-0.5"/>
           <p className="text-yellow-200/60 text-xs leading-relaxed">
-            <strong className="text-yellow-400">Disclaimer:</strong> AI predictions are for educational purposes only and NOT financial advice. Always do your own research before investing.
+            <strong className="text-yellow-400">Disclaimer:</strong> AI predictions are for educational purposes only. Not financial advice. Always do your own research before investing.
           </p>
         </div>
         <div className="mt-3 text-center text-gray-700 text-xs pb-6">
