@@ -5,7 +5,7 @@ import { TrendingUp, TrendingDown, Minus, RefreshCw, Download,
          Zap, Calendar } from "lucide-react"
 import axios from "axios"
 
-const API = "http://localhost:8000"
+const API = "https://ai-stock-predictor-bytw.onrender.com"
 
 function safe(val, fallback = 0) {
   const n = parseFloat(val)
