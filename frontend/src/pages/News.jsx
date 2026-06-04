@@ -3,7 +3,7 @@ import { Newspaper, TrendingUp, TrendingDown, Minus,
          RefreshCw, Clock, Filter, ArrowLeft } from "lucide-react"
 import axios from "axios"
 
-const API = "http://localhost:8000"
+const API = "https://ai-stock-predictor-bytw.onrender.com"
 
 function LiveClock() {
   const [time, setTime] = useState(new Date())
