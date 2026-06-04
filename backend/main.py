@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from database.connection import get_connection, init_database
 
 app = FastAPI(title="AI Stock Predictor API", version="3.0.0")
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"],
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "https://stockai-frontend-osx3.onrender.com"],
     allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 @app.on_event("startup")
