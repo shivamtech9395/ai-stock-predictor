@@ -2,7 +2,6 @@
 venv/
 .venv/
 .venv-1/
-*.db
 backend/models/saved/
 __pycache__/
 *.pyc
