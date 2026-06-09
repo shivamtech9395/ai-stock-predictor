@@ -427,6 +427,13 @@ export default function Dashboard() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs text-gray-300 transition-all">
               <Newspaper size={12}/> News
             </a>
+            <a href="/market"
+              className="flex items-center gap-1.5 px-3 py-1.5
+             bg-gray-800 hover:bg-gray-700
+             border border-gray-700 rounded-lg
+             text-xs text-gray-300 transition-all">
+             <Activity size={12}/> Market
+                        </a>
             <button onClick={() => { fetchPredictions(); fetchLivePrices() }}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-600/30 rounded-lg text-xs text-blue-400 transition-all">
               <RefreshCw size={12} className={loading ? "animate-spin" : ""}/>

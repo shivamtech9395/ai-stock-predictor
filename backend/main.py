@@ -316,3 +316,38 @@ def download_news_pdf():
         )
     except Exception as e:
         return {"error": str(e)}    
+@app.get("/api/market/observation")
+def get_market_observation():
+    """
+    Daily market observation — 
+    Top movers, why market moved, detailed report
+    """
+    try:
+        import json
+        from backend.market_close_report import generate_close_report
+        
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # Check if today's report exists
+        cursor.execute("""
+            SELECT report_json, report_date 
+            FROM market_reports 
+            WHERE report_date = ?
+        """, (str(date.today()),))
+        row = cursor.fetchone()
+        conn.close()
+        
+        if row:
+            return {
+                "status": "ok",
+                "report_date": row['report_date'],
+                "data": json.loads(row['report_json'])
+            }
+        
+        # Generate fresh report
+        report = generate_close_report()
+        return {"status": "ok", "data": report}
+        
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
