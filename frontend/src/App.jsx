@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard'
 import News from './pages/News'
 import StockDetail from './pages/StockDetail'
 import MarketObservation from './pages/MarketObservation'
+import Watchlist from './pages/Watchlist'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/news" element={<News />} />
         <Route path="/stock/:symbol" element={<StockDetail />} />
         <Route path="/market" element={<MarketObservation />} />
+        <Route path="/watchlist" element={<Watchlist />} />
       </Routes>
     </BrowserRouter>
   )

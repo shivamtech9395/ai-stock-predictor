@@ -423,6 +423,13 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/>
+            <a href="/watchlist"
+            className="flex items-center gap-1.5 px-3 py-1.5
+             bg-gray-800 hover:bg-gray-700
+             border border-gray-700 rounded-lg
+             text-xs text-gray-300 transition-all">
+            ⭐ Watchlist
+            </a>
             <a href="/news"
               className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs text-gray-300 transition-all">
               <Newspaper size={12}/> News
